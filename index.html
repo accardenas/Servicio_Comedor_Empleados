@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Chosen Palette: Warm Neutrals with Sky Blue Accent -->
+    <!-- Application Structure Plan: A single-page application with vertical scrolling sections. The structure is: 1. Executive Summary (key takeaways and stats), 2. Detailed Analysis (using tabs for Rent, VAT, Billing, IFRS), 3. Accounting Cycle Simulator (interactive step-by-step visualization with charts), and 4. Action Plan. This structure allows a user to get a quick overview, dive deep into specifics, interact with the core process, and see actionable steps, providing a highly usable flow for this dense information. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Cost/Revenue summary. -> Goal: Inform. -> Viz: Key metric cards (HTML/Tailwind) and a Donut Chart (Chart.js) for cost breakdown. -> Interaction: Hover on chart. -> Justification: Cards provide at-a-glance KPIs. Donut chart clearly shows cost composition.
+        - Report Info: Accounting cycle. -> Goal: Organize/Change. -> Viz: Interactive step-by-step diagram (HTML/Tailwind) updating a results panel and a dynamic Bar Chart (Chart.js). -> Interaction: Clicking step buttons updates visualizations and text. -> Justification: Breaks down a complex process into manageable steps.
+        - Report Info: Summary Matrix. -> Goal: Organize. -> Viz: Styled HTML table. -> Interaction: None needed. -> Justification: A table is the clearest way to present this matrix data.
+        -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <title>Análisis Interactivo: Comedor de Empleados (Enfoque de Ingresos)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .chart-container { position: relative; width: 100%; max-width: 500px; margin-left: auto; margin-right: auto; height: 300px; max-height: 350px; }
+        .tab-button.active { background-color: #0284c7; color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .step-item.active .step-number { background-color: #0284c7; color: white; border-color: #0284c7; }
+        .step-item.active .step-title { color: #0284c7; font-weight: 600; }
+        .slide { min-height: calc(100vh - 92px - 48px); /* Full height minus header and nav */ scroll-margin-top: 140px; /* Header + Nav height */ display: flex; flex-direction: column; justify-content: center; }
+        .nav-slide-link.active { color: #0284c7; border-bottom-color: #0284c7; }
+    </style>
+</head>
+<body class="text-slate-700">
+
+    <header class="bg-white shadow-sm sticky top-0 z-20">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center">
+            <img src="Logo GESCONT transparencia.png" alt="Logo de la Empresa" class="h-20 w-auto" onerror="this.style.display='none'">
+            <div class="ml-6">
+                <h1 class="text-xl sm:text-2xl font-bold text-slate-900">Análisis Normativo: Servicio de Comedor de Empleados</h1>
+                <p class="text-sm text-slate-600">Un enfoque integral bajo NIIF, tributario y laboral para Colfrutas</p>
+            </div>
+        </div>
+    </header>
+
+    <nav class="bg-white/90 backdrop-blur-sm shadow-md sticky top-[92px] z-10">
+        <div class="container mx-auto flex justify-center items-center h-12">
+            <a href="#situacion-actual" class="nav-slide-link px-3 py-3 text-sm font-semibold text-slate-600 border-b-2 border-transparent hover:text-sky-600 hover:border-sky-600 transition">Situación Actual</a>
+            <a href="#resumen" class="nav-slide-link px-3 py-3 text-sm font-semibold text-slate-600 border-b-2 border-transparent hover:text-sky-600 hover:border-sky-600 transition">Resumen Ejecutivo</a>
+            <a href="#analisis" class="nav-slide-link px-3 py-3 text-sm font-semibold text-slate-600 border-b-2 border-transparent hover:text-sky-600 hover:border-sky-600 transition">Análisis Detallado</a>
+            <a href="#ciclo-contable" class="nav-slide-link px-3 py-3 text-sm font-semibold text-slate-600 border-b-2 border-transparent hover:text-sky-600 hover:border-sky-600 transition">Simulador</a>
+            <a href="#plan-accion" class="nav-slide-link px-3 py-3 text-sm font-semibold text-slate-600 border-b-2 border-transparent hover:text-sky-600 hover:border-sky-600 transition">Plan de Acción</a>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Slide 1: Current Situation -->
+        <section id="situacion-actual" class="slide p-4 sm:p-6 lg:p-8">
+            <div class="w-full max-w-4xl text-center mx-auto">
+                <h2 class="text-3xl font-bold text-slate-800 mb-8">Diagnóstico de la Situación Actual</h2>
+                <div class="grid md:grid-cols-2 gap-6 text-left">
+                    <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-yellow-500">
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">Contabilización como "Otros Ingresos"</h3>
+                        <p class="text-slate-600">El cobro se registra como un ingreso, pero no se le da el tratamiento completo de una venta de servicios, lo que genera inconsistencias fiscales y contables.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-yellow-500">
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">Pago de Autorretención en Renta</h3>
+                        <p class="text-slate-600">Se está pagando autorretención sobre estos ingresos (F350), lo cual es correcto si se consideran ingresos gravables, pero entra en conflicto con el siguiente punto.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-red-500">
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">Declaración de IVA (F300)</h3>
+                        <p class="text-slate-600">Se declara como un ingreso **no gravado**, lo que contradice la naturaleza del servicio y la normativa del IVA. Este es un punto de alto riesgo fiscal.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-red-500">
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">Ausencia de Facturación</h3>
+                        <p class="text-slate-600">No se está expidiendo factura electrónica por la venta del servicio, incumpliendo una obligación formal clave y arriesgando la deducibilidad de los costos asociados.</p>
+                    </div>
+                </div>
+            </div>
+            <footer class="w-full text-center text-slate-500 text-xs pt-12 mt-auto">
+                <p class="font-semibold">Elaborado por: 👨🏽‍💻 CP. AUGUSTO CÁRDENAS 📧augustoccardenas@gmail.com ☎️ 321 8168328</p>
+                <p>Informe generado para Colfrutas S.A.S. | Análisis basado en la normativa vigente.</p>
+            </footer>
+        </section>
+
+        <!-- Slide 2: Executive Summary -->
+        <section id="resumen" class="slide p-4 sm:p-6 lg:p-8 bg-slate-100">
+            <div class="w-full max-w-4xl text-center mx-auto">
+                <h2 class="text-2xl font-bold text-slate-800 mb-6">Resumen Ejecutivo y Cifras Clave</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-md text-center">
+                        <h3 class="text-sm font-semibold text-slate-500 uppercase">Enfoque Contable</h3>
+                        <p class="text-xl font-bold text-sky-600 mt-2">Ingreso Operacional</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md text-center">
+                        <h3 class="text-sm font-semibold text-slate-500 uppercase">IVA en Venta</h3>
+                        <p class="text-xl font-bold text-sky-600 mt-2">Gravado al 19%</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md text-center">
+                        <h3 class="text-sm font-semibold text-slate-500 uppercase">Facturación</h3>
+                        <p class="text-xl font-bold text-sky-600 mt-2">Obligatoria</p>
+                    </div>
+                </div>
+                <h3 class="text-xl font-bold text-slate-700 mt-10 mb-4">Límites para Beneficio del Empleado (Año 2025)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+                     <div class="bg-white p-6 rounded-xl shadow-md">
+                        <p class="text-sm font-semibold text-slate-500">Límite Salarial para Beneficio</p>
+                        <div class="flex items-baseline justify-between mt-2">
+                            <span class="text-2xl font-bold text-sky-600">310 UVT</span>
+                            <span class="text-lg font-semibold text-slate-700">$15,437,690</span>
+                        </div>
+                     </div>
+                     <div class="bg-white p-6 rounded-xl shadow-md">
+                        <p class="text-sm font-semibold text-slate-500">Límite Mensual de Subsidio Exento</p>
+                        <div class="flex items-baseline justify-between mt-2">
+                            <span class="text-2xl font-bold text-sky-600">41 UVT</span>
+                            <span class="text-lg font-semibold text-slate-700">$2,041,759</span>
+                        </div>
+                     </div>
+                </div>
+                 <p class="text-xs text-slate-500 mt-2 text-right">Valor UVT 2025: $49,799</p>
+            </div>
+            <footer class="w-full text-center text-slate-500 text-xs pt-12 mt-auto">
+                <p class="font-semibold">Elaborado por: 👨🏽‍💻 CP. AUGUSTO CÁRDENAS 📧augustoccardenas@gmail.com ☎️ 321 8168328</p>
+                <p>Informe generado para Colfrutas S.A.S. | Análisis basado en la normativa vigente.</p>
+            </footer>
+        </section>
+
+        <!-- Slide 3: Detailed Analysis -->
+        <section id="analisis" class="slide p-4 sm:p-6 lg:p-8">
+            <div class="w-full max-w-4xl mx-auto">
+                <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6 text-center">Análisis Normativo Detallado</h2>
+                    <div class="max-w-3xl mx-auto">
+                        <div class="flex border-b border-slate-200 mb-6 justify-center">
+                            <button class="tab-button px-4 py-2 font-semibold text-slate-600 transition -mb-px" onclick="openTab(event, 'renta')">Renta</button>
+                            <button class="tab-button px-4 py-2 font-semibold text-slate-600 transition -mb-px" onclick="openTab(event, 'iva')">IVA</button>
+                            <button class="tab-button px-4 py-2 font-semibold text-slate-600 transition -mb-px" onclick="openTab(event, 'facturacion')">Facturación</button>
+                            <button class="tab-button px-4 py-2 font-semibold text-slate-600 transition -mb-px" onclick="openTab(event, 'niif')">Contable (NIIF)</button>
+                        </div>
+                        <div id="renta" class="tab-content">
+                            <h3 class="font-bold text-lg mb-2 text-slate-800">Implicaciones en Impuesto sobre la Renta</h3>
+                            <p class="mb-2"><strong>Para la Empresa:</strong> La totalidad de los costos (insumos, nómina del cocinero) son 100% deducibles. El valor pagado por el empleado se reconoce como un ingreso gravable, que se compensa con los gastos, resultando en una pérdida (el subsidio) que reduce la base gravable general de la empresa.</p>
+                            <p><strong>Para el Empleado:</strong> El subsidio (costo real menos el pago del empleado) NO es ingreso para el trabajador, siempre que su salario no exceda 310 UVT y el subsidio mensual no supere 41 UVT. El exceso sobre este último valor es gravable.</p>
+                        </div>
+                        <div id="iva" class="tab-content">
+                            <h3 class="font-bold text-lg mb-2 text-slate-800">Tratamiento del Impuesto sobre las Ventas (IVA)</h3>
+                            <p class="mb-2">La prestación del servicio de alimentación a cambio de un pago es un hecho **generador de IVA a la tarifa general del 19%**. El valor de $5,500 se considera el precio final, por lo que debe descomponerse para hallar la base y el impuesto.</p>
+                            <p>Colfrutas tiene el derecho de tomar como **IVA descontable** todo el IVA pagado en la compra de insumos y servicios necesarios para la operación del comedor.</p>
+                        </div>
+                        <div id="facturacion" class="tab-content">
+                            <h3 class="font-bold text-lg mb-2 text-slate-800">Obligación de Facturar</h3>
+                            <p>Es **obligatorio expedir factura electrónica de venta** a cada empleado por el servicio prestado. La normativa tributaria no exime de esta obligación por tratarse de ventas a empleados. No hacerlo puede acarrear sanciones y el rechazo de los costos e IVA descontable asociados a la operación.</p>
+                        </div>
+                        <div id="niif" class="tab-content">
+                            <h3 class="font-bold text-lg mb-2 text-slate-800">Reconocimiento Contable (NIIF 15)</h3>
+                            <p class="mb-2">El tratamiento correcto es reconocer el valor recaudado de los empleados como un **ingreso de actividades ordinarias**. Esto se alinea con la NIIF 15, que considera al empleado un "cliente" para esta transacción específica.</p>
+                            <p>La NIIF 15 establece un modelo de cinco pasos para el reconocimiento de ingresos, el cual es plenamente aplicable: 1) Se identifica el contrato con el cliente (el acuerdo con el empleado). 2) Se identifican las obligaciones de desempeño (suministrar el almuerzo). 3) Se determina el precio de la transacción ($5,500). 4) Se asigna el precio a las obligaciones. 5) Se reconoce el ingreso cuando la entidad satisface la obligación de desempeño, es decir, al entregar el almuerzo. Este enfoque asegura la transparencia y evita el neteo de transacciones, presentando fielmente la realidad económica de la operación.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+             <footer class="w-full text-center text-slate-500 text-xs pt-12 mt-auto">
+                <p class="font-semibold">Elaborado por: 👨🏽‍💻 CP. AUGUSTO CÁRDENAS 📧augustoccardenas@gmail.com ☎️ 321 8168328</p>
+                <p>Informe generado para Colfrutas S.A.S. | Análisis basado en la normativa vigente.</p>
+            </footer>
+        </section>
+
+        <!-- Slide 4: Accounting Cycle Simulator -->
+        <section id="ciclo-contable" class="slide p-4 sm:p-6 lg:p-8 bg-slate-100">
+            <div class="w-full max-w-6xl mx-auto">
+                <h2 class="text-2xl font-bold text-slate-800 mb-6 text-center">Simulador del Ciclo Contable Mensual</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                    <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg">
+                        <h3 class="font-bold text-lg mb-4 text-center">Flujo de la Operación</h3>
+                        <div class="space-y-4">
+                            <div id="step-1" class="step-item p-4 rounded-lg border-2 border-transparent cursor-pointer" onclick="showStep(1)">
+                                <div class="flex items-center"><div class="step-number w-8 h-8 rounded-full border-2 border-slate-300 flex items-center justify-center font-bold text-slate-500 mr-4 transition">1</div><p class="step-title font-semibold text-slate-700 transition">Compra de Insumos y Gastos</p></div>
+                            </div>
+                            <div id="step-2" class="step-item p-4 rounded-lg border-2 border-transparent cursor-pointer" onclick="showStep(2)">
+                                <div class="flex items-center"><div class="step-number w-8 h-8 rounded-full border-2 border-slate-300 flex items-center justify-center font-bold text-slate-500 mr-4 transition">2</div><p class="step-title font-semibold text-slate-700 transition">Registro de Ingresos y Facturación</p></div>
+                            </div>
+                            <div id="step-3" class="step-item p-4 rounded-lg border-2 border-transparent cursor-pointer" onclick="showStep(3)">
+                                <div class="flex items-center"><div class="step-number w-8 h-8 rounded-full border-2 border-slate-300 flex items-center justify-center font-bold text-slate-500 mr-4 transition">3</div><p class="step-title font-semibold text-slate-700 transition">Liquidación y Cruce de IVA</p></div>
+                            </div>
+                            <div id="step-4" class="step-item p-4 rounded-lg border-2 border-transparent cursor-pointer" onclick="showStep(4)">
+                                <div class="flex items-center"><div class="step-number w-8 h-8 rounded-full border-2 border-slate-300 flex items-center justify-center font-bold text-slate-500 mr-4 transition">4</div><p class="step-title font-semibold text-slate-700 transition">Resultado Neto de la Operación</p></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg">
+                        <div id="step-details-container" class="text-center">
+                            <h3 id="step-title-display" class="font-bold text-lg mb-2 text-sky-700"></h3>
+                            <p id="step-description-display" class="text-sm mb-4"></p>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="cycleChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+             <footer class="w-full text-center text-slate-500 text-xs pt-12 mt-auto">
+                <p class="font-semibold">Elaborado por: 👨🏽‍💻 CP. AUGUSTO CÁRDENAS 📧augustoccardenas@gmail.com ☎️ 321 8168328</p>
+                <p>Informe generado para Colfrutas S.A.S. | Análisis basado en la normativa vigente.</p>
+            </footer>
+        </section>
+
+        <!-- Slide 5: Action Plan -->
+        <section id="plan-accion" class="slide p-4 sm:p-6 lg:p-8">
+            <div class="w-full max-w-4xl mx-auto">
+                <h2 class="text-2xl font-bold text-slate-800 mb-6 text-center">Plan de Acción Estratégico</h2>
+                <div class="space-y-4">
+                    <div class="bg-white p-5 rounded-xl shadow-md flex items-center"><div class="w-10 h-10 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center font-bold text-xl mr-4">1</div><div><h4 class="font-semibold text-slate-800">Revisión Legal y Contractual</h4><p class="text-sm text-slate-600">Firmar un "otro sí" para pactar la exclusión salarial del beneficio.</p></div></div>
+                    <div class="bg-white p-5 rounded-xl shadow-md flex items-center"><div class="w-10 h-10 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center font-bold text-xl mr-4">2</div><div><h4 class="font-semibold text-slate-800">Parametrización de Sistemas</h4><p class="text-sm text-slate-600">Configurar el ERP para facturación electrónica a empleados e integración con contabilidad y nómina.</p></div></div>
+                    <div class="bg-white p-5 rounded-xl shadow-md flex items-center"><div class="w-10 h-10 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center font-bold text-xl mr-4">3</div><div><h4 class="font-semibold text-slate-800">Diseño del Proceso de Costeo</h4><p class="text-sm text-slate-600">Implementar un método para calcular el costo real por almuerzo y monitorear los topes de UVT.</p></div></div>
+                    <div class="bg-white p-5 rounded-xl shadow-md flex items-center"><div class="w-10 h-10 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center font-bold text-xl mr-4">4</div><div><h4 class="font-semibold text-slate-800">Formalización de Política Contable</h4><p class="text-sm text-slate-600">Documentar en el manual de políticas el reconocimiento del cobro como ingreso operacional bajo NIIF 15.</p></div></div>
+                </div>
+            </div>
+             <footer class="w-full text-center text-slate-500 text-xs pt-12 mt-auto">
+                <p class="font-semibold">Elaborado por:  🏽‍💻 CP. AUGUSTO CÁRDENAS 📧augustoccardenas@gmail.com ☎️ 321 8168328</p>
+                <p>Informe generado para Colfrutas S.A.S. | Análisis basado en la normativa vigente.</p>
+            </footer>
+        </section>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Tabs logic
+            const tabs = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            window.openTab = function(event, tabName) {
+                tabContents.forEach(content => content.classList.remove('active'));
+                tabs.forEach(tab => tab.classList.remove('active'));
+                document.getElementById(tabName).classList.add('active');
+                event.currentTarget.classList.add('active');
+            }
+            tabs[0].click();
+
+            // Simulator logic
+            const stepData = [
+                {
+                    title: 'Gastos Totales de la Operación',
+                    description: 'Se reconocen todos los costos de insumos y nómina del personal de cocina. El IVA de las compras se registra como descontable.',
+                    chart: { type: 'doughnut', data: { labels: ['Costo Insumos', 'Costo Nómina Cocinera'], datasets: [{ data: [12000000, 3000000], backgroundColor: ['#0ea5e9', '#38bdf8'], borderColor: '#ffffff', borderWidth: 4 }] }, options: { cutout: '60%' } }
+                },
+                {
+                    title: 'Ingresos por Venta de Almuerzos',
+                    description: 'Se factura el total cobrado a empleados. El valor se descompone en ingreso bruto y el IVA generado, que debe ser declarado.',
+                    chart: { type: 'bar', data: { labels: ['Ingreso Bruto (Base)', 'IVA Generado (19%)'], datasets: [{ label: 'Valor', data: [9243697, 1756303], backgroundColor: ['#0ea5e9', '#ec4899'], borderRadius: 6 }] }, options: { scales: { x: { display: false } } } }
+                },
+                {
+                    title: 'Liquidación del IVA',
+                    description: 'Se compara el IVA generado en las ventas con el IVA descontable de las compras. El resultado es el saldo a pagar o a favor del periodo.',
+                    chart: { type: 'bar', data: { labels: ['IVA Descontable (a favor)', 'IVA Generado (a cargo)'], datasets: [{ label: 'Valor', data: [2280000, 1756303], backgroundColor: ['#22c55e', '#ef4444'], borderRadius: 6 }] }, options: {} }
+                },
+                {
+                    title: 'Resultado Neto (Subsidio)',
+                    description: 'Se comparan los ingresos brutos con los gastos totales. La pérdida resultante es el subsidio neto que la empresa otorga y que es deducible de renta.',
+                    chart: { type: 'bar', data: { labels: ['Gasto Total Incurrido', 'Ingreso Bruto Generado'], datasets: [{ label: 'Valor', data: [15000000, 9243697], backgroundColor: ['#f43f5e', '#0ea5e9'], borderRadius: 6 }] }, options: {} }
+                }
+            ];
+
+            let cycleChart;
+            const ctx = document.getElementById('cycleChart').getContext('2d');
+            const titleEl = document.getElementById('step-title-display');
+            const descEl = document.getElementById('step-description-display');
+            const stepItems = document.querySelectorAll('.step-item');
+
+            const chartBaseOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { font: { size: 12 }, color: '#475569' } },
+                    tooltip: { callbacks: { title: (items) => items[0].label, label: (context) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(context.raw) }, backgroundColor: '#1e293b', titleFont: { size: 14 }, bodyFont: { size: 12 }, padding: 10, cornerRadius: 4 }
+                },
+                scales: { y: { beginAtZero: true, ticks: { callback: (value) => new Intl.NumberFormat('es-CO', { notation: 'compact', compactDisplay: 'short' }).format(value) } } }
+            };
+            
+            window.showStep = function(stepNumber) {
+                const index = stepNumber - 1;
+                const data = stepData[index];
+                titleEl.textContent = data.title;
+                descEl.textContent = data.description;
+                stepItems.forEach(item => item.classList.remove('active'));
+                document.getElementById(`step-${stepNumber}`).classList.add('active');
+                if (cycleChart) { cycleChart.destroy(); }
+                const config = { type: data.chart.type, data: data.chart.data, options: { ...chartBaseOptions, ...data.chart.options } };
+                if (config.type === 'doughnut') { delete config.options.scales; } else { config.options.plugins.legend.display = false; }
+                cycleChart = new Chart(ctx, config);
+            }
+            showStep(1);
+
+            // Slide navigation observer
+            const sections = document.querySelectorAll('section.slide');
+            const navLinks = document.querySelectorAll('a.nav-slide-link');
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href').substring(1) === entry.target.id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, { rootMargin: '-144px 0px -50% 0px' });
+
+            sections.forEach(section => observer.observe(section));
+        });
+    </script>
+</body>
+</html>
+ 
